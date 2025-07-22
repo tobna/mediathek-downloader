@@ -1,0 +1,19 @@
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python/
+env/
+venv/
+*.env
+.vscode/
+
+# Configuration
+# Ignore local configuration files that may contain sensitive paths or user-specific settings.
+config.yaml
+
+# Operating System Files
+.DS_Store
+Thumbs.db
