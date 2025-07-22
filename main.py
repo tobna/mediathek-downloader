@@ -126,7 +126,9 @@ def download_program(program_config, output_base_folder, rate_limit_arg):
 
         # Ensure comparison is done with timezone-aware datetimes
         if pub_date_utc < datetime.datetime.now(tz=pytz.UTC) - datetime.timedelta(days=max_age_days):
-            logger.info(f"Skipping '{formatted_title}': Too old (published on {pub_date_utc.date()}).")
+            logger.info(
+                f"Skipping '{formatted_title}': Too old (published on {pub_date_utc.date()} / {pub_date_tag.text})."
+            )
             continue
 
         # Construct file paths
