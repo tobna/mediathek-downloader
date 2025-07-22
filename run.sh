@@ -1,8 +1,8 @@
 #! /bin/bash
-pip install -r requirements.txt
+pip install -r /downloader/requirements.txt
 
 while :; do
   git pull --rebase
-  python main.py -o $OUTFOLDER
+  python /downloader/main.py -o $OUTFOLDER
   sleep 108000
 done
