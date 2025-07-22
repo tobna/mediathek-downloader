@@ -3,5 +3,4 @@ programs:
     min-length: 20
     season-offset: 2013
     max-age: 200
-
-rate-limit: 250k
+    station: zdf

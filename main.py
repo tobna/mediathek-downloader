@@ -60,6 +60,7 @@ def download_program(program_config, output_base_folder, rate_limit_arg):
     min_length = program_config.get("min-length", 0)
     season_offset = int(program_config.get("season-offset", 0))
     max_age_days = int(program_config.get("max-age", 365))
+    station = program_config.get("station", "")
 
     logger.info(f"Processing program: {program_name}")
 
@@ -67,6 +68,8 @@ def download_program(program_config, output_base_folder, rate_limit_arg):
     search_query = f"# {program_name}"
     if min_length > 0:
         search_query += f" >{min_length}"
+    if len(station) > 0:
+        search_query += f" !{station}"
     encoded_search_query = requests.utils.quote(search_query)  # URL-encode the query
     search_url = SEARCH_BASE_URL + encoded_search_query
     logger.debug(f"Search URL: {search_url}")
