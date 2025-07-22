@@ -147,7 +147,7 @@ def download_program(program_config, output_base_folder, rate_limit_arg):
         try:
             # Escape single quotes in the path for shell command safety
             escaped_full_file_path = full_file_path.replace("'", "'\\''")
-            command = f"wget {rate_limit_arg} '{episode_link}' -O '{escaped_full_file_path}'"
+            command = f"wget -nv {rate_limit_arg} '{episode_link}' -O '{escaped_full_file_path}'"
             logger.debug(f"Executing: {command}")
             # Consider using `subprocess.run` directly with a list of arguments
             # instead of a single string for improved security and robustness.
