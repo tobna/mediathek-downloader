@@ -167,11 +167,11 @@ def main():
     global_rate_limit = config.get("rate-limit")
     rate_limit_arg = f"--limit-rate={global_rate_limit}" if not args.unlimited and global_rate_limit else ""
     if args.unlimited:
-        logging.info("Download speed limits disabled by --unlimited flag.")
+        logger.info("Download speed limits disabled by --unlimited flag.")
     elif not global_rate_limit:
-        logging.warning("No rate-limit specified in config.yaml. Downloads will be unlimited.")
+        logger.warning("No rate-limit specified in config.yaml. Downloads will be unlimited.")
     else:
-        logging.info(f"Download speed limited to: {global_rate_limit}")
+        logger.info(f"Download speed limited to: {global_rate_limit}")
 
     # Create the base output folder if it doesn't exist
     os.makedirs(args.out, exist_ok=True)
