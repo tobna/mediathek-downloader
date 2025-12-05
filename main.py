@@ -11,13 +11,6 @@ import yaml
 from bs4 import BeautifulSoup
 from loguru import logger
 
-logger.remove()
-logger.add(
-    sys.stderr,
-    level="INFO",
-    format="<g>{time:YYYY-MM-DD HH:mm:ss.SSS}</g> <c>|</c> <level>{level: <8}</level> <c>|</c> {message}",
-)
-
 
 def parse_arguments():
     """Parses command-line arguments for the script."""
@@ -26,6 +19,7 @@ def parse_arguments():
     parser.add_argument(
         "--unlimited", action="store_true", help="Disable all download speed limits configured in config.yaml."
     )
+    parser.add_argument("--debug", action=argparse.BooleanOptionalAction, default=False, help="debug logging")
     return parser.parse_args()
 
 
@@ -61,6 +55,7 @@ def download_program(program_config, output_base_folder, rate_limit_arg):
     season_offset = int(program_config.get("season-offset", 0))
     max_age_days = int(program_config.get("max-age", 365))
     station = program_config.get("station", "")
+    all_pages = program_config.get("all-pages", False)
 
     logger.info(f"Processing program: {program_name}")
 
@@ -71,18 +66,27 @@ def download_program(program_config, output_base_folder, rate_limit_arg):
     if len(station) > 0:
         search_query += f" !{station}"
     encoded_search_query = requests.utils.quote(search_query)  # URL-encode the query
-    search_url = SEARCH_BASE_URL + encoded_search_query
-    logger.debug(f"Search URL: {search_url}")
+    items = []
+    resp = [None]
+    offset = 0
+    while len(resp) != 0:
+        search_url = SEARCH_BASE_URL + encoded_search_query + f"&future=true&offset={offset}"
+        logger.debug(f"Search URL: {search_url}")
 
-    try:
-        response = requests.get(search_url, timeout=10)  # Add a timeout for robustness
-        response.raise_for_status()  # Raise an exception for HTTP errors
-        data = BeautifulSoup(response.text, "xml")
-    except requests.exceptions.RequestException as e:
-        logger.error(f"Failed to fetch data for {program_name}: {e}")
-        return
+        try:
+            response = requests.get(search_url, timeout=10)  # Add a timeout for robustness
+            response.raise_for_status()  # Raise an exception for HTTP errors
+            data = BeautifulSoup(response.text, "xml")
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Failed to fetch data for {program_name}: {e}")
+            return
 
-    items = data.find_all("item")
+        resp = list(data.find_all("item"))
+        offset += len(resp)
+        items += resp
+        logger.debug(f"Get {program_name} at offset {offset}; response {len(resp)}")
+        if not all_pages:
+            break
     if not items:
         logger.warning(f"No episodes found for '{program_name}'. Check the program name or filters.")
         return
@@ -165,6 +169,12 @@ def download_program(program_config, output_base_folder, rate_limit_arg):
 
 def main():
     args = parse_arguments()
+    logger.remove()
+    logger.add(
+        sys.stderr,
+        level="DEBUG" if args.debug else "INFO",
+        format="<g>{time:YYYY-MM-DD HH:mm:ss.SSS}</g> <c>|</c> <level>{level: <8}</level> <c>|</c> {message}",
+    )
     root_folder = os.path.dirname(os.path.abspath(__file__))  # Get absolute path
     config_path = os.path.join(root_folder, "config.yaml")
     config = load_config(config_path)

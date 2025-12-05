@@ -7,3 +7,4 @@ programs:
   - name: Suits
     station: zdfneo
     min-length: 30
+    all-pages: True
