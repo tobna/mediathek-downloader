@@ -44,7 +44,7 @@ def load_config(config_path):
 
 # --- Constants ---
 SEARCH_BASE_URL = "https://mediathekviewweb.de/feed?query="
-EPISODE_REGEX = re.compile(r"(.*) \(S(\d+)\/E(\d+)\)")
+EPISODE_REGEX = re.compile(r"(.*) \(S(\d+)\/E(\d+)\)$")
 
 
 def download_program(program_config, output_base_folder, rate_limit_arg):
