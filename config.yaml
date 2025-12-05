@@ -4,3 +4,6 @@ programs:
     season-offset: 2013
     max-age: 200
     station: zdf
+  - name: Suits
+    station: zdfneo
+    min-length: 30
