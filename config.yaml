@@ -12,3 +12,10 @@ programs:
     min-length: 30
     station: arte.de
     all-pages: True
+  - name: Wolf Hall
+    min-length: 40
+    station: arte.de
+  - name: The Rookie
+    min-length: 30
+    station: zdfneo
+    all-pages: True
