@@ -54,7 +54,7 @@ def download_program(program_config, output_base_folder, rate_limit_arg, downloa
     program_name = program_config["name"]
     min_length = program_config.get("min-length", 0)
     season_offset = int(program_config.get("season-offset", 0))
-    max_age_days = int(program_config.get("max-age", 365))
+    max_age_days = int(program_config.get("max-age", 10 * 365))
     station = program_config.get("station", "")
     all_pages = program_config.get("all-pages", False)
 
