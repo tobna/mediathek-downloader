@@ -8,3 +8,7 @@ programs:
     station: zdfneo
     min-length: 30
     all-pages: True
+  - name: Mad Men
+    min-length: 30
+    station: arte.de
+    all-pages: True
