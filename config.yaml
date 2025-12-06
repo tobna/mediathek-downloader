@@ -1,5 +1,5 @@
 programs:
-  - name: die Anstalt
+  - name: Die Anstalt
     min-length: 20
     season-offset: 2013
     max-age: 200

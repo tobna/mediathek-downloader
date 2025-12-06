@@ -137,7 +137,7 @@ def download_program(program_config, output_base_folder, rate_limit_arg):
 
         # Construct file paths
         # Use program_category as it's often more accurate for folder structure
-        ep_folder = os.path.join(output_base_folder, program_category, f"Season {season:02d}")
+        ep_folder = os.path.join(output_base_folder, program_name, f"Season {season:02d}")
         # Extract file extension from the link
         file_extension = episode_link.split(".")[-1]
         file_name = f"{formatted_title}.{file_extension}"
