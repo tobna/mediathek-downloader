@@ -39,6 +39,7 @@ def load_config(config_path):
 # --- Constants ---
 SEARCH_BASE_URL = "https://mediathekviewweb.de/feed?query="
 EPISODE_REGEX = re.compile(r"(.*) \(S(\d+)\/E(\d+)\)$")
+ARTE_REGEX = re.compile(r"(.*) - Staffel (\d+) \((\d+)\/\d+\) -[^\(]*$")
 
 
 def download_program(program_config, output_base_folder, rate_limit_arg, download=True):
@@ -108,8 +109,11 @@ def download_program(program_config, output_base_folder, rate_limit_arg, downloa
 
         match = EPISODE_REGEX.match(title)
         if not match:
-            logger.debug(f"Skipping '{title}': Does not match episode naming pattern.")
-            continue
+            logger.debug(f"no match for episode regex; try arte regex: {title}")
+            match = ARTE_REGEX.match(title)
+            if not match:
+                logger.debug(f"Skipping '{title}': Does not match episode naming pattern.")
+                continue
 
         base_title, season_str, episode_str = match.groups()
         try:
