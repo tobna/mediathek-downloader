@@ -41,7 +41,7 @@ SEARCH_BASE_URL = "https://mediathekviewweb.de/feed?query="
 EPISODE_REGEX = re.compile(r"(.*) \(S(\d+)\/E(\d+)\)$")
 
 
-def download_program(program_config, output_base_folder, rate_limit_arg):
+def download_program(program_config, output_base_folder, rate_limit_arg, download=True):
     """
     Downloads episodes for a given program based on its configuration.
 
@@ -153,18 +153,21 @@ def download_program(program_config, output_base_folder, rate_limit_arg):
         logger.info(f"Downloading '{formatted_title}' to '{full_file_path}'")
         # Use subprocess for better control and error handling instead of os.system
         # This prevents shell injection issues and allows capturing output/errors.
-        try:
-            # Escape single quotes in the path for shell command safety
-            escaped_full_file_path = full_file_path.replace("'", "'\\''")
-            command = f"wget -nv {rate_limit_arg} '{episode_link}' -O '{escaped_full_file_path}'"
-            logger.debug(f"Executing: {command}")
-            # Consider using `subprocess.run` directly with a list of arguments
-            # instead of a single string for improved security and robustness.
-            # Example: subprocess.run(["wget", rate_limit_arg.split('=')[0], rate_limit_arg.split('=')[1], episode_link, "-O", full_file_path], check=True)
-            os.system(command)  # Still using os.system for direct replacement, but subprocess is preferred.
-            logger.success(f"Successfully downloaded '{formatted_title}'.")
-        except Exception as e:  # Catch broader exceptions for os.system issues
-            logger.error(f"Error downloading '{formatted_title}': {e}")
+        if download:
+            try:
+                # Escape single quotes in the path for shell command safety
+                escaped_full_file_path = full_file_path.replace("'", "'\\''")
+                command = f"wget -nv {rate_limit_arg} '{episode_link}' -O '{escaped_full_file_path}'"
+                logger.debug(f"Executing: {command}")
+                # Consider using `subprocess.run` directly with a list of arguments
+                # instead of a single string for improved security and robustness.
+                # Example: subprocess.run(["wget", rate_limit_arg.split('=')[0], rate_limit_arg.split('=')[1], episode_link, "-O", full_file_path], check=True)
+                os.system(command)  # Still using os.system for direct replacement, but subprocess is preferred.
+                logger.success(f"Successfully downloaded '{formatted_title}'.")
+            except Exception as e:  # Catch broader exceptions for os.system issues
+                logger.error(f"Error downloading '{formatted_title}': {e}")
+        else:
+            logger.debug("skipping download")
 
 
 def main():
@@ -192,7 +195,7 @@ def main():
     os.makedirs(args.out, exist_ok=True)
 
     for program_config in config.get("programs", []):  # Handle case where 'programs' might be missing
-        download_program(program_config, args.out, rate_limit_arg)
+        download_program(program_config, args.out, rate_limit_arg, download=not args.debug)
 
 
 if __name__ == "__main__":
