@@ -19,3 +19,7 @@ programs:
     min-length: 30
     station: zdfneo
     all-pages: True
+  - name: 'Der Herr der Ringe: Die Ringe der Macht'
+    station: zdfneo
+    min-length: 45
+    all-pages: True
