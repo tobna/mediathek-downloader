@@ -23,3 +23,6 @@ programs:
     station: zdfneo
     min-length: 45
     all-pages: True
+  - name: 'Agatha Christies Marple'
+    station: one
+    min-length: 60
