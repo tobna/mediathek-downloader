@@ -3,6 +3,8 @@ import datetime
 import os
 import re
 import sys
+from pathlib import Path
+from tempfile import TemporaryDirectory
 
 import dateparser
 import pytz
@@ -34,6 +36,74 @@ def load_config(config_path):
     except yaml.YAMLError as e:
         logger.error(f"Error parsing configuration file: {e}")
         exit(1)
+
+
+TS_URL_RE = re.compile(r'^(https?://[^"]+\.ts|/[^"]+\.ts|[^"]+\.ts)$')
+
+
+def _get_segments(m3u8_file, tmpfolder):
+    segments = []
+    with open(m3u8_file, "r") as f:
+        for line in f:
+            match = TS_URL_RE.match(line)
+            if match:
+                filelink = match.group(1)
+                fileending = filelink.split(".")[-1]
+                if fileending == "m3u8":
+                    filepath = tmpfolder / filelink.split("/")[-1]
+                    escaped_path = filepath.replace("'", "\\'")
+                    command = f"wget -nv '{filelink}' -O '{escaped_path}'"
+                    logger.info(f"Download sub-m3u8 file: {filelink}")
+                    os.system(command)
+                    segments += _get_segments(filelink, tmpfolder)
+                else:
+                    segments.append(filelink)
+    return segments
+
+
+def download_file(full_file_path, episode_link, rate_limit_arg=""):
+    # Escape single quotes in the path for shell command safety
+    escaped_full_file_path = full_file_path.replace("'", "\\'")
+    command = f"wget -nv {rate_limit_arg} '{episode_link}' -O '{escaped_full_file_path}'"
+    logger.debug(f"Executing: {command}")
+    # Consider using `subprocess.run` directly with a list of arguments
+    # instead of a single string for improved security and robustness.
+    # Example: subprocess.run(["wget", rate_limit_arg.split('=')[0], rate_limit_arg.split('=')[1], episode_link, "-O", full_file_path], check=True)
+    os.system(command)  # Still using os.system for direct replacement, but subprocess is preferred.
+
+    filetype = escaped_full_file_path.split(".")[-1]
+    if filetype.lower() == "mp4":
+        return
+    if filetype.lower() == "m3u8":
+        with TemporaryDirectory() as tmpdir:
+            tmpdir = Path(tmpdir)
+            segments = _get_segments(full_file_path, tmpdir)
+            with open(tmpdir / "segments.txt", "w") as f:
+                for segment in segments:
+                    f.write(segment + "\n")
+            command = f'wget -P {tmpdir} -i {tmpdir/"segments.txt"} --user-agent="Mozilla/5.0" --quiet'
+            logger.info(f"Downloading {len(segments)} segment files")
+            os.system(command)
+
+            # segments to filenames
+            command = f"cat {tmpdir/'segments.txt'} | xargs -n 1 basename > {tmpdir/'filenames.txt'}"
+            os.system(command)
+
+            # make list ready for ffmpeg
+            command = f"sed \"s/^/file {tmpdir}/'/; s/$/'\" {tmpdir/'filenames.txt'} > {tmpdir/'ffmpeg_list.txt'}"
+            command = (
+                f"sed \"s|.*/||; s|^|file '{tmpdir}/|; s|$|'|\" {tmpdir/'filenames.txt'} > {tmpdir/'ffmpeg_list.txt'}"
+            )
+            os.system(command)
+
+            logger.info("Concatenate with ffmpeg")
+            command = (
+                f"ffmpeg -f concat -safe 0 -i {tmpdir/'ffmpeg_list.txt'} -c:v libx264 -c:a aac"
+                f" '{escaped_full_file_path.replace('.m3u8', '.mp4')}'"
+            )
+        return
+    logger.error(f"Unknown filetype: '{escaped_full_file_path}'")
+    return
 
 
 # --- Constants ---
@@ -159,14 +229,7 @@ def download_program(program_config, output_base_folder, rate_limit_arg, downloa
         # This prevents shell injection issues and allows capturing output/errors.
         if download:
             try:
-                # Escape single quotes in the path for shell command safety
-                escaped_full_file_path = full_file_path.replace("'", "'\\''")
-                command = f"wget -nv {rate_limit_arg} '{episode_link}' -O '{escaped_full_file_path}'"
-                logger.debug(f"Executing: {command}")
-                # Consider using `subprocess.run` directly with a list of arguments
-                # instead of a single string for improved security and robustness.
-                # Example: subprocess.run(["wget", rate_limit_arg.split('=')[0], rate_limit_arg.split('=')[1], episode_link, "-O", full_file_path], check=True)
-                os.system(command)  # Still using os.system for direct replacement, but subprocess is preferred.
+                download_file(full_file_path, episode_link, rate_limit_arg)
                 logger.success(f"Successfully downloaded '{formatted_title}'.")
             except Exception as e:  # Catch broader exceptions for os.system issues
                 logger.error(f"Error downloading '{formatted_title}': {e}")
