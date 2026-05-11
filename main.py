@@ -81,7 +81,7 @@ def download_file(full_file_path, episode_link, rate_limit_arg=""):
             with open(tmpdir / "segments.txt", "w") as f:
                 for segment in segments:
                     f.write(segment + "\n")
-            command = f'wget -P {tmpdir} -i {tmpdir/"segments.txt"} --user-agent="Mozilla/5.0" --quiet'
+            command = f'wget -P {tmpdir} -i {tmpdir/"segments.txt"} --user-agent="Mozilla/5.0" --quiet --show-progress'
             logger.info(f"Downloading {len(segments)} segment files")
             os.system(command)
 
