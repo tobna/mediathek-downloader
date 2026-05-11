@@ -101,6 +101,7 @@ def download_file(full_file_path, episode_link, rate_limit_arg=""):
                 f"ffmpeg -f concat -safe 0 -i {tmpdir/'ffmpeg_list.txt'} -c:v libx264 -c:a aac"
                 f" '{escaped_full_file_path.replace('.m3u8', '.mp4')}'"
             )
+            os.system(command)
         return
     logger.error(f"Unknown filetype: '{escaped_full_file_path}'")
     return
