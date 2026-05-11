@@ -1,5 +1,6 @@
 #! /bin/bash
 pip install -r /downloader/requirements.txt
+apt install ffmpeg -y
 
 while :; do
   git pull --rebase
