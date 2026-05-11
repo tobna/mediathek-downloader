@@ -217,7 +217,7 @@ def download_program(program_config, output_base_folder, rate_limit_arg, downloa
         file_name = f"{formatted_title}.{file_extension}"
         full_file_path = os.path.join(ep_folder, file_name)
 
-        if os.path.exists(full_file_path):
+        if os.path.exists(full_file_path) and file_extension == "mp4":
             logger.info(f"Already downloaded: '{formatted_title}'.")
             continue
 
